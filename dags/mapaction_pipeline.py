@@ -3,6 +3,10 @@ import os
 
 import pendulum
 from airflow.decorators import dag, task
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # This is a way to create a different pipeline for every country, so they
 # (hopefully) run in parallel.
@@ -10,6 +14,24 @@ configs = {
     "Afganistan": {"code": "afg"},
     "Mozambique": {"code": "moz"}
 }
+
+S3_BUCKET = os.environ.get("S3_BUCKET")
+
+def create_file():
+    with open('test.txt', 'w') as f:
+        f.write('hello world')
+
+
+def upload_to_s3() -> None:
+    print("s3 bucket:", S3_BUCKET)
+    hook = S3Hook('aws_conn')
+    hook.load_file(
+        filename="./test.txt",
+        key="some_key/test.txt",
+        bucket_name=S3_BUCKET,
+        replace=True
+    )
+
 
 for config_name, config in configs.items():
     dag_id = f"dynamic_generated_dag_{config_name}"
@@ -75,7 +97,9 @@ for config_name, config in configs.items():
 
         @task()
         def mapaction_export():
-            pass
+            create_file()
+            print(os.listdir())
+            upload_to_s3()
 
         @task()
         def ocha_admin_boundaries():
