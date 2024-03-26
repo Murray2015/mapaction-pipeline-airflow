@@ -7,8 +7,12 @@ This is a proof of concept data pipeline using Apache Airflow to rebuild the
 ## TODO 
 
 - [ ] Test deploying to AWS / GCP 
+- [ ] Estimate cloud costs 
 - [ ] Connect to S3 / GCS 
-- [ ] 
+- [ ] Generate slow / non changing data (particularly elevation) 
+- [ ] Find mechanism to check if country boundary has changed (hash / checksum?) for 
+conditional logic on whether to re-generate the country's elevation dataset (the slow step)
+
 
 
 ## Geocint <> Airflow POC mapping 
