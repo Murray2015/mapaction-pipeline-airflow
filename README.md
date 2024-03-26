@@ -7,8 +7,12 @@ This is a proof of concept data pipeline using Apache Airflow to rebuild the
 ## TODO 
 
 - [ ] Test deploying to AWS / GCP 
+  - [x] Make AWS VPC (creation in progress. It's slow...) 
+  - [x] Make S3 Bucket
+  - [ ] Make MWAA
 - [ ] Estimate cloud costs 
-- [ ] Connect to S3 / GCS 
+- [ ] Connect to S3 / GCS for data output
+- [ ] Set up CI/CD
 - [ ] Generate slow / non changing data (particularly elevation) 
 - [ ] Find mechanism to check if country boundary has changed (hash / checksum?) for 
 conditional logic on whether to re-generate the country's elevation dataset (the slow step)
@@ -45,3 +49,8 @@ remade / mapped in the POC pipeline with the same names, and this is currently w
 |   worldpop1km  |     |     |
 |   Elevation  |     |     |
 |   download_hdx_admin_pop  |     |     |
+
+## Notes
+
+- Currently trying AWS's [managed service](https://docs.aws.amazon.com/mwaa/latest/userguide/what-is-mwaa.html). 
+- See [here](https://github.com/aws/aws-mwaa-local-runner/issues/157) for how to install non-python dependencies (e.g. gdal) 
