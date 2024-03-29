@@ -35,7 +35,10 @@ def upload_to_s3() -> None:
 
 for config_name, config in configs.items():
     dag_id = f"dynamic_generated_dag_{config_name}"
-
+    country_code = config['code']
+    data_in_directory = f"data/input/{country_code}"
+    data_out_directory = f"data/output/{country_code}"
+    cmf_directory = f"data/cmfs/{country_code}"
 
     @dag(
         dag_id=dag_id,
@@ -54,10 +57,11 @@ for config_name, config in configs.items():
         @task()
         def make_data_dirs():
             print("This is //////// ", os.getcwd())
-            os.makedirs("data/input", exist_ok=True)
-            os.makedirs(f"data/output/{config['code']}", exist_ok=True)
-            os.makedirs(f"data/cmfs/{config['code']}", exist_ok=True)
+            os.makedirs(data_in_directory, exist_ok=True)
+            os.makedirs(data_out_directory, exist_ok=True)
+            os.makedirs(cmf_directory, exist_ok=True)
             print("\\\\\\", os.listdir())
+            print("\\\\\\", os.listdir("data/input/"))
             print("\\\\\\", os.listdir("data/output"))
 
         @task()
@@ -65,14 +69,14 @@ for config_name, config in configs.items():
             import requests
             with open("dags/static_data/hdx_admin_pop_urls.json") as file:
                 country_data = json.load(file)
-                data = [x for x in country_data if x['country_code'] == config['code']][
+                data = [x for x in country_data if x['country_code'] == country_code][
                     0]
                 print(data)
                 response = requests.get(data['val'][0]['download_url'])
-                with open(f"data/output/{config['code']}/hdx_pop_{config['code']}.csv", "wb") as output_file:
+                with open(f"data/output/{country_code}/hdx_pop_{country_code}.csv", "wb") as output_file:
                     output_file.write(response.content)
                 print(response.content)
-                print(os.listdir(f"data/output/{config['code']}/"))
+                print(os.listdir(f"data/output/{country_code}/"))
 
         @task()
         def elevation():
@@ -84,9 +88,8 @@ for config_name, config in configs.items():
 
             import requests
 
-            country_code: str = config['code']
             country_code_upper = country_code.upper()
-            foldername = f"data/output/{config['code']}/223_popu/"
+            foldername = f"data/output/{country_code}/223_popu/"
             os.makedirs(foldername, exist_ok=True)
 
             with open(f"{foldername}/{country_code}_popu_pop_ras_s1_worldpop_pp_popdensity_2020unad.tif", "wb") as output_file:
@@ -103,7 +106,35 @@ for config_name, config in configs.items():
 
         @task()
         def ocha_admin_boundaries():
-            pass
+            """ Downloads the hdx admin boundaries. Based on download_hdx_admin_boundaries.sh.
+
+            First, downloads the data list from https://data.humdata.org/api/3/action/package_show?id=cod-ab-$country_code
+            Then iterates through object downloading and un-compressing each file.
+            """
+            import io
+            import requests
+            import zipfile
+
+            datalist_url = f"https://data.humdata.org/api/3/action/package_show?id=cod-ab-{country_code}"
+            datalist_json = requests.get(datalist_url).json()
+            download_urls: list[str] = [result['download_url'] for result in datalist_json['result']['resources']]
+            print(download_urls)
+            # TODO: can speedup with asyncio/threading if needed
+            for url in download_urls:
+                save_location = f"{data_in_directory}/{url.split('/')[-1]}"
+                response = requests.get(url)
+                if url.endswith('.zip'):
+                    save_location = save_location.replace(".zip", "")
+                    z = zipfile.ZipFile(io.BytesIO(response.content))
+                    z.extractall(save_location)
+                else:
+                    with open(save_location, 'wb') as f:
+                        f.write(response.content)
+            print("final files", os.listdir(data_in_directory))
+        # TODO: next, continue with the script with ogr2ogr stuff.
+
+
+
 
         @task()
         def healthsites():

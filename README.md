@@ -6,12 +6,15 @@ This is a proof of concept data pipeline using Apache Airflow to rebuild the
 
 ## TODO 
 
+- [In progress] Implement more pipeline steps
 - [ ] Test deploying to AWS / GCP 
   - [x] Make AWS VPC (creation in progress. It's slow...) 
   - [x] Make S3 Bucket
-  - [ ] Make MWAA
-- [ ] Estimate cloud costs 
-- [ ] Connect to S3 / GCS for data output
+  - [x] Make MWAA
+    - Outcome - MWAA was very simple to setup, but may be too expensive for a non-profit. 
+      Likely around £5500/yr _as a lower bound_. 
+- [In progress] Estimate cloud costs 
+- [x] Connect to S3 / GCS for data output
 - [ ] Set up CI/CD
 - [ ] Generate slow / non changing data (particularly elevation) 
 - [ ] Find mechanism to check if country boundary has changed (hash / checksum?) for 
