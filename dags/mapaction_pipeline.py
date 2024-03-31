@@ -75,7 +75,10 @@ for config_name, config in configs.items():
 
         @task()
         def healthsites():
-            pass
+            from pipline_lib.healthcities import healthsites
+            healthsites()
+            # TODO: not working, waiting for API key
+
 
         @task()
         def ne_10m_roads():
