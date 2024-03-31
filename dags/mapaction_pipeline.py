@@ -71,7 +71,7 @@ for config_name, config in configs.items():
             from pipline_lib.ocha_admin_boundaries import \
                 ocha_admin_boundaries as _ocha_admin_boundaries
 
-            _ocha_admin_boundaries(country_code, data_in_directory)
+            _ocha_admin_boundaries(country_code, data_in_directory, data_out_directory)
 
         @task()
         def healthsites():
