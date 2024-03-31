@@ -7,12 +7,14 @@ This is a proof of concept data pipeline using Apache Airflow to rebuild the
 ## TODO 
 
 - [In progress] Implement more pipeline steps
-- [ ] Test deploying to AWS / GCP 
+- [x] Test deploying to AWS  
   - [x] Make AWS VPC (creation in progress. It's slow...) 
   - [x] Make S3 Bucket
   - [x] Make MWAA
     - Outcome - MWAA was very simple to setup, but may be too expensive for a non-profit. 
       Likely around £5500/yr _as a lower bound_. 
+- [ ] Test deploying to GCP 
+- [ ] Test deploying to dagster 
 - [In progress] Estimate cloud costs 
 - [x] Connect to S3 / GCS for data output
 - [ ] Set up CI/CD
@@ -57,3 +59,8 @@ remade / mapped in the POC pipeline with the same names, and this is currently w
 
 - Currently trying AWS's [managed service](https://docs.aws.amazon.com/mwaa/latest/userguide/what-is-mwaa.html). 
 - See [here](https://github.com/aws/aws-mwaa-local-runner/issues/157) for how to install non-python dependencies (e.g. gdal) 
+
+## Quickstart
+
+1. Install docker and docker compose 
+2. Follow the Airflow steps for using docker compose [here](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html).
