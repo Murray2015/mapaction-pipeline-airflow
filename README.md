@@ -64,3 +64,5 @@ remade / mapped in the POC pipeline with the same names, and this is currently w
 
 1. Install docker and docker compose 
 2. Follow the Airflow steps for using docker compose [here](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html).
+3. Note, you may need to force recreating images, e.g. `docker compose up --force-recreate`
+4. The default location for the webserver is [http://localhost:8080](http://localhost:8080). The default username and password is `airflow`. 
