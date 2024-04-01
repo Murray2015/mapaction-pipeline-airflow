@@ -3,7 +3,7 @@ import os
 
 import pendulum
 from airflow.decorators import dag, task
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from airflow.operators.bash import BashOperator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,6 +21,7 @@ for config_name, config in configs.items():
     dag_id = f"dynamic_generated_dag_{config_name}"
     country_code = config['code']
     data_in_directory = f"data/input/{country_code}"
+    data_in_common_data = "data/input/common"
     data_out_directory = f"data/output/{country_code}"
     cmf_directory = f"data/cmfs/{country_code}"
 
@@ -31,6 +32,13 @@ for config_name, config in configs.items():
         start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
         catchup=False,
         tags=["mapaction"],
+        default_args={
+            "country_code": country_code,
+            "data_in_directory": data_in_directory,
+            "data_in_common_data": data_in_common_data,
+            "data_out_directory": data_out_directory,
+            "cmf_directory": cmf_directory
+        }
     )
     def mapaction_pipeline():
         """The MapAction Pipeline
@@ -75,13 +83,18 @@ for config_name, config in configs.items():
 
         @task()
         def healthsites():
-            from pipline_lib.healthcities import healthsites
-            healthsites()
+            from pipline_lib.healthcities import healthsites as _healthsites
+            _healthsites()
             # TODO: not working, waiting for API key
-
 
         @task()
         def ne_10m_roads():
+            from pipline_lib.ne_10m_roads import ne_10m_roads as _ne_10m_roads
+            _ne_10m_roads(data_in_common_data)
+
+            # Download roads file
+            # Unzip
+            # extract from .shp
             pass
 
         @task()
@@ -136,6 +149,19 @@ for config_name, config in configs.items():
         def send_slack_message():
             pass
 
+        # Make data/in dir
+        run_this = BashOperator(
+            task_id="run_after_loop",
+            bash_command='echo {{ params.country_code }}',
+            params={"country_code": country_code}
+        )
+
+        # Make data/in dir
+        run_this_2 = BashOperator(
+            task_id="ogrinfo_task",
+            bash_command='ogrinfo --help',
+        )
+
         #####################################
         ######## Pipeline definition ########
         #####################################
@@ -153,11 +179,19 @@ for config_name, config in configs.items():
                  ne_10m_populated_places(),
                  ne_10m_roads(),
                  healthsites(),
-                 ocha_admin_boundaries(),
+                 # ocha_admin_boundaries(),
                  mapaction_export(),
                  worldpop1km(),
                  elevation(),
                  download_hdx_admin_pop()]
+
+                >>
+
+                run_this
+
+                >>
+
+                run_this_2
 
                 >>
 
