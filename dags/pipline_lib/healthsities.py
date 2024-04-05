@@ -12,6 +12,7 @@ logger.setLevel("DEBUG")
 
 
 def healthsites(country_name: str, api_key: str, save_location: str):
+    """ Main entry point to this module """
     data = get_health_sites(country_name=country_name, api_key=api_key)
     write_healthsites_shapefile(healthsites=data, output_path=save_location)
 
