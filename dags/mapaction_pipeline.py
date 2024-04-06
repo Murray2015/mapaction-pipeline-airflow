@@ -82,7 +82,7 @@ for config_name, config in configs.items():
 
         @task()
         def healthsites():
-            from pipline_lib.healthcities import healthsites as _healthsites
+            from pipline_lib.healthsities import healthsites as _healthsites
             print("////", data_in_directory, data_out_directory, cmf_directory)
             _healthsites()
             # TODO: not working, waiting for API key
@@ -100,8 +100,9 @@ for config_name, config in configs.items():
 
         @task()
         def ne_10m_populated_places():
-            pass
-
+            from pipline_lib.ne_10m_populated_places import ne_10m_populated_places as \
+                _ne_10m_populated_places
+            _ne_10m_populated_places()
         @task()
         def ne_10m_rivers_lake_centerlines():
             pass
