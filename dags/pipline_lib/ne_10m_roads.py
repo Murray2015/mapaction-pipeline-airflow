@@ -8,6 +8,7 @@ import requests
 def ne_10m_roads(data_in_dir: str):
     # Make data/in dir
     save_dir = f"{data_in_dir}/ne_10m_roads"
+    print(f"save_dir: {save_dir}")
     os.makedirs(save_dir, exist_ok=True)
 
     # Download roads file
@@ -15,5 +16,5 @@ def ne_10m_roads(data_in_dir: str):
     z = zipfile.ZipFile(io.BytesIO(response.content))
     z.extractall(save_dir)
     print("////", os.listdir(save_dir))
-    # extract from .shp
 
+    # extract from .shp done in next task

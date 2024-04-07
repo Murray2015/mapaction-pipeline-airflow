@@ -84,8 +84,9 @@ for config_name, config in configs.items():
         def healthsites():
             from pipline_lib.healthsities import healthsites as _healthsites
             print("////", data_in_directory, data_out_directory, cmf_directory)
-            _healthsites()
-            # TODO: not working, waiting for API key
+            # _healthsites()
+            # TODO: download working (but tiny (50) daily rate limit.
+            # TODO: transform (extra by country) not done yet.
 
         @task()
         def ne_10m_roads():
@@ -103,12 +104,17 @@ for config_name, config in configs.items():
             from pipline_lib.ne_10m_populated_places import ne_10m_populated_places as \
                 _ne_10m_populated_places
             _ne_10m_populated_places()
+            # TODO: extract from shapefile
+
         @task()
         def ne_10m_rivers_lake_centerlines():
-            pass
+            from pipline_lib.ne_10m_rivers_lake_centerlines import \
+                ne_10m_rivers_lake_centerlines as _ne_10m_rivers_lake_centerlines
+            _ne_10m_rivers_lake_centerlines(country_code, data_in_directory, data_out_directory)
 
         @task()
         def global_power_plant_database():
+
             pass
 
         @task()
