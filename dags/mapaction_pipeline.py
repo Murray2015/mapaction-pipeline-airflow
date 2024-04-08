@@ -114,8 +114,9 @@ for config_name, config in configs.items():
 
         @task()
         def global_power_plant_database():
-
-            pass
+            from pipline_lib.power_plants import power_plants as _power_plants
+            _power_plants(data_in_directory, data_out_directory)
+            # TODO: extract via country code in csv in next step
 
         @task()
         def wfp_railroads():

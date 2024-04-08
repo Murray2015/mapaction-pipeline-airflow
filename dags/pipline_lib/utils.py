@@ -1,6 +1,9 @@
+import io
 import json
 import os
+import zipfile
 
+import requests
 import shapefile
 
 
@@ -28,3 +31,13 @@ def shepefile_to_geojson(shapefile_path: str, geojson_path: str) -> None:
         geojson.write(json.dumps({"type": "FeatureCollection", "features": buffer},
                                  indent=2, default=str) + "\n")
         geojson.close()
+
+
+def make_dir_download_zip(download_url: str, download_location: str,
+                          output_file_location: str):
+    """ Helper to download and extract a zip file. """
+    os.makedirs(download_location, exist_ok=True)
+    response = requests.get(download_url)
+    z = zipfile.ZipFile(io.BytesIO(response.content))
+    z.extractall(output_file_location)
+    print("////", os.listdir(output_file_location))
