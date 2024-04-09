@@ -120,6 +120,8 @@ for config_name, config in configs.items():
 
         @task()
         def wfp_railroads():
+            from pipline_lib.wfp_railroads import wfp_railroads as _wfp_railroads
+            _wfp_railroads(data_in_directory, data_out_directory)
             pass
 
         @task()
