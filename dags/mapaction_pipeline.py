@@ -122,11 +122,12 @@ for config_name, config in configs.items():
         def wfp_railroads():
             from pipline_lib.wfp_railroads import wfp_railroads as _wfp_railroads
             _wfp_railroads(data_in_directory, data_out_directory)
-            pass
+            # TODO: haven't found any source for this file yet 🤷
 
         @task()
         def worldports():
-            pass
+            from pipline_lib.worldports import worldports as _world_ports
+            _world_ports(data_in_directory, data_out_directory)
 
         @task()
         def ourairports():

@@ -42,6 +42,7 @@ def make_dir_download_zip(download_url: str, download_location: str,
     logger.info(f"Downloading data to {download_location}")
     os.makedirs(download_location, exist_ok=True)
     response = requests.get(download_url)
+    response.raise_for_status()
     z = zipfile.ZipFile(io.BytesIO(response.content))
     z.extractall(output_file_location)
     print("////", os.listdir(output_file_location))

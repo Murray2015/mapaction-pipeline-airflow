@@ -21,6 +21,7 @@ This is a proof of concept data pipeline using Apache Airflow to rebuild the
 - [ ] Generate slow / non changing data (particularly elevation) 
 - [ ] Find mechanism to check if country boundary has changed (hash / checksum?) for 
 conditional logic on whether to re-generate the country's elevation dataset (the slow step)
+- [ ] Fix bug where dynamic pipeline generation seems to always get "moz" (even for Afganistan?!)
 
 
 
