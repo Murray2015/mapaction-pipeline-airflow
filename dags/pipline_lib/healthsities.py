@@ -17,7 +17,7 @@ def healthsites(country_name: str, api_key: str, save_location: str):
     write_healthsites_shapefile(healthsites=data, output_path=save_location)
 
 
-def get_health_sites(country_name: str, api_key: str) -> list[dict]:
+def get_health_sites(country_name: str, api_key: str) -> list:
     """ Queries healsites.io v3 api, loops through pages to get data """
     logger.debug("Running get_health_sites for %s", country_name)
     page = 1
@@ -34,7 +34,7 @@ def get_health_sites(country_name: str, api_key: str) -> list[dict]:
     return results
 
 
-def write_healthsites_shapefile(healthsites: list[dict], output_path: str) -> None:
+def write_healthsites_shapefile(healthsites: list, output_path: str) -> None:
     """ Writes input data into a shapefile (.shp, .shx and .dbf) """
     with shapefile.Writer(output_path, shapeType=shapefile.POINT) as w:
         # Define shapefile field records

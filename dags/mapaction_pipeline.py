@@ -52,7 +52,7 @@ for config_name, config in configs.items():
                 download_hdx_admin_pop as download_pop
 
             print("////", data_in_directory, data_out_directory, cmf_directory)
-            download_pop(country_code)
+            download_pop(country_code, data_in_directory)
 
         @task()
         def elevation():
@@ -103,7 +103,7 @@ for config_name, config in configs.items():
         def ne_10m_populated_places():
             from pipline_lib.ne_10m_populated_places import ne_10m_populated_places as \
                 _ne_10m_populated_places
-            _ne_10m_populated_places()
+            _ne_10m_populated_places(data_in_directory)
             # TODO: extract from shapefile
 
         @task()
@@ -113,7 +113,7 @@ for config_name, config in configs.items():
             _ne_10m_rivers_lake_centerlines(country_code, data_in_directory, data_out_directory)
 
         @task()
-        def global_power_plant_database():
+        def power_plants():
             from pipline_lib.power_plants import power_plants as _power_plants
             _power_plants(data_in_directory, data_out_directory)
             # TODO: extract via country code in csv in next step
@@ -136,7 +136,8 @@ for config_name, config in configs.items():
 
         @task()
         def ne_10m_lakes():
-            pass
+            from pipline_lib.ne_10m_lakes import ne_10m_lakes as _ne_10m_lakes
+            _ne_10m_lakes(data_in_directory, data_out_directory)
 
         @task()
         def datasets_ckan_descriptions():
@@ -196,7 +197,7 @@ for config_name, config in configs.items():
                  ourairports(),
                  worldports(),
                  wfp_railroads(),
-                 global_power_plant_database(),
+                 power_plants(),
                  ne_10m_rivers_lake_centerlines(),
                  ne_10m_populated_places(),
                  ne_10m_roads(),
