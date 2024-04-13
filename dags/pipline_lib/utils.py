@@ -7,8 +7,8 @@ import zipfile
 import requests
 import shapefile
 
-
 logger = getLogger(__name__)
+
 
 def add_string_to_filename(filename: str, string_to_add: str) -> str:
     """Adds a string to the end of a filename string before the extension."""
@@ -46,4 +46,15 @@ def make_dir_download_zip(download_url: str, download_location: str,
     z = zipfile.ZipFile(io.BytesIO(response.content))
     z.extractall(output_file_location)
     print("////", os.listdir(output_file_location))
+    logger.info(f"Download to {download_location} complete.")
+
+
+def make_dir_download_csv(download_url: str, download_location: str, filename: str):
+    """ Helper to download and extract a csv file. """
+    logger.info(f"Downloading csv data to {download_location}")
+    os.makedirs(download_location, exist_ok=True)
+    response = requests.get(download_url)
+    response.raise_for_status()
+    with open(download_location + f"/{filename}", "wb") as f:
+        f.write(response.content)
     logger.info(f"Download to {download_location} complete.")

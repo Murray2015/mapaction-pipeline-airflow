@@ -131,7 +131,8 @@ for config_name, config in configs.items():
 
         @task()
         def ourairports():
-            pass
+            from pipline_lib.ourairports import ourairports as _ourairports
+            _ourairports(data_in_directory, data_out_directory)
 
         @task()
         def ne_10m_lakes():
