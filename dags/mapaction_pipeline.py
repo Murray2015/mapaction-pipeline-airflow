@@ -1,4 +1,3 @@
-import json
 import os
 
 import pendulum
@@ -56,7 +55,8 @@ for config_name, config in configs.items():
 
         @task()
         def elevation():
-            pass
+            from pipline_lib.srtm_30m import download_srtm_30
+            download_srtm_30("Mozambique")
 
         @task()
         def worldpop1km():
@@ -82,7 +82,6 @@ for config_name, config in configs.items():
 
         @task()
         def healthsites():
-            from pipline_lib.healthsities import healthsites as _healthsites
             print("////", data_in_directory, data_out_directory, cmf_directory)
             # _healthsites()
             # TODO: download working (but tiny (50) daily rate limit.
