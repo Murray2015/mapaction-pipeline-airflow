@@ -13,6 +13,8 @@ configs = {
     "Afganistan": {"code": "afg"},
     "Mozambique": {"code": "moz"}
 }
+# TODO: there's a bug in this config / the below for loop that isn't passing the 'code'
+#  around correctly (is passing "moz" to both Afgan and Moz pipelines?)
 
 S3_BUCKET = os.environ.get("S3_BUCKET")
 
@@ -41,12 +43,14 @@ for config_name, config in configs.items():
 
         @task()
         def make_data_dirs():
+            """ Development complete """
             from pipline_lib.make_data_dirs import make_data_dirs as make_dirs
             print("////", data_in_directory, data_out_directory, cmf_directory, dag_id)
             make_dirs(data_in_directory, data_out_directory, cmf_directory)
 
         @task()
         def download_hdx_admin_pop():
+            """ Development complete """
             from pipline_lib.download_hdx_admin_pop import \
                 download_hdx_admin_pop as download_pop
 
@@ -56,13 +60,23 @@ for config_name, config in configs.items():
         @task()
         def elevation():
             from pipline_lib.srtm_30m import download_srtm_30
-            download_srtm_30("Mozambique")
+            # download_srtm_30("Mozambique")  # Commented for development as slow to run
+            # TODO: this downloads ?30m SRTM, but also need to download 90 and 250m
+            # TODO: not currently doing any processing here. May need to grid and output
 
         @task()
         def worldpop1km():
+            """ Development complete """
             from pipline_lib.worldpop1km import worldpop1km as _worldpop1km
             print("////", data_in_directory, data_out_directory, cmf_directory)
             _worldpop1km(country_code)
+
+        @task()
+        def worldpop100m():
+            """ Development complete """
+            from pipline_lib.worldpop100m import worldpop100m as _worldpop100m
+            print("////", data_in_directory, data_out_directory, cmf_directory)
+            _worldpop100m(country_code)
 
         @task()
         def mapaction_export():
@@ -109,7 +123,8 @@ for config_name, config in configs.items():
         def ne_10m_rivers_lake_centerlines():
             from pipline_lib.ne_10m_rivers_lake_centerlines import \
                 ne_10m_rivers_lake_centerlines as _ne_10m_rivers_lake_centerlines
-            _ne_10m_rivers_lake_centerlines(country_code, data_in_directory, data_out_directory)
+            _ne_10m_rivers_lake_centerlines(country_code, data_in_directory,
+                                            data_out_directory)
 
         @task()
         def power_plants():
@@ -204,6 +219,7 @@ for config_name, config in configs.items():
                  # ocha_admin_boundaries(),
                  mapaction_export(),
                  worldpop1km(),
+                 worldpop100m(),
                  elevation(),
                  download_hdx_admin_pop()]
 
