@@ -18,8 +18,8 @@ configs = {
 
 S3_BUCKET = os.environ.get("S3_BUCKET")
 
-for config_name, config in configs.items():
-    dag_id = f"dynamic_generated_dag_{config_name}"
+for country_name, config in configs.items():
+    dag_id = f"dynamic_generated_dag_{country_name}"
     country_code = config['code']
     data_in_directory = f"data/input/{country_code}"
     data_out_directory = f"data/output/{country_code}"
@@ -81,13 +81,13 @@ for config_name, config in configs.items():
         @task()
         def mapaction_export():
             from pipline_lib.s3 import upload_to_s3, create_file
-
             print("////", data_in_directory, data_out_directory, cmf_directory)
             create_file()
             upload_to_s3(s3_bucket=S3_BUCKET)
 
         @task()
         def ocha_admin_boundaries():
+            """ Development complete """
             from pipline_lib.ocha_admin_boundaries import \
                 ocha_admin_boundaries as _ocha_admin_boundaries
 
@@ -96,10 +96,13 @@ for config_name, config in configs.items():
 
         @task()
         def healthsites():
+            """ Development complete (extraction already done as API is by country) """
+            from pipline_lib.healthsities import healthsites as _healthsites
             print("////", data_in_directory, data_out_directory, cmf_directory)
-            # _healthsites()
-            # TODO: download working (but tiny (50) daily rate limit.
-            # TODO: transform (extra by country) not done yet.
+            save_location = data_in_directory + "/healthsites"
+            os.makedirs(save_location, exist_ok=True)
+            # _healthsites(country_name, os.environ.get("HEALTHSITES_API_KEY"), save_location)
+            # Download working (but tiny (50) daily rate limit.
 
         @task()
         def ne_10m_roads():
