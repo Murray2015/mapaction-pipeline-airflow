@@ -107,18 +107,15 @@ for country_name, config in configs.items():
 
         @task()
         def ne_10m_roads():
+            """ Development complete """
             from pipline_lib.ne_10m_roads import ne_10m_roads as _ne_10m_roads
             print("////", data_in_directory, data_out_directory, cmf_directory)
-            print(config)
             _ne_10m_roads(data_in_directory)
-            print(country_code)
 
-            # Download roads file
-            # Unzip
-            # extract from .shp
 
         @task.bash()
         def transform_ne_10m_roads() -> str:
+            """ Usure if dev complete - outputs empty for Moz. """
             country_geojson_filename = f"{docker_worker_working_dir}/dags/static_data/countries/{country_code}.json"
             input_shp_name = f"{docker_worker_working_dir}/{data_in_directory}/ne_10m_roads/ne_10m_roads.shp"
             output_name = f"{docker_worker_working_dir}/{data_out_directory}/232_tran/{country_code}_tran_rds_ln_s0_naturalearth_pp_roads"
@@ -228,7 +225,6 @@ for country_name, config in configs.items():
                  ne_10m_rivers_lake_centerlines(),
                  ne_10m_populated_places(),
                  ne_10m_roads(),
-                 transform_ne_10m_roads(),
                  healthsites(),
                  # ocha_admin_boundaries(),
                  mapaction_export(),
@@ -236,6 +232,10 @@ for country_name, config in configs.items():
                  worldpop100m(),
                  elevation(),
                  download_hdx_admin_pop()]
+
+                >>
+
+                transform_ne_10m_roads()
 
                 >>
 
