@@ -25,6 +25,7 @@ for country_name, config in configs.items():
     data_out_directory = f"data/output/{country_code}"
     cmf_directory = f"data/cmfs/{country_code}"
     docker_worker_working_dir = "/opt/airflow"
+    bash_script_path = f"{docker_worker_working_dir}/dags/scripts/bash"
 
 
     @dag(
@@ -110,10 +111,19 @@ for country_name, config in configs.items():
             print("////", data_in_directory, data_out_directory, cmf_directory)
             print(config)
             _ne_10m_roads(data_in_directory)
+            print(country_code)
 
             # Download roads file
             # Unzip
             # extract from .shp
+
+        @task.bash()
+        def transform_ne_10m_roads() -> str:
+            country_geojson_filename = f"{docker_worker_working_dir}/dags/static_data/countries/{country_code}.json"
+            input_shp_name = f"{docker_worker_working_dir}/{data_in_directory}/ne_10m_roads/ne_10m_roads.shp"
+            output_name = f"{docker_worker_working_dir}/{data_out_directory}/232_tran/{country_code}_tran_rds_ln_s0_naturalearth_pp_roads"
+            return f"{bash_script_path}/mapaction_extract_country_from_shp.sh {country_geojson_filename} {input_shp_name} {output_name}"
+
 
         @task()
         def ne_10m_populated_places():
@@ -218,6 +228,7 @@ for country_name, config in configs.items():
                  ne_10m_rivers_lake_centerlines(),
                  ne_10m_populated_places(),
                  ne_10m_roads(),
+                 transform_ne_10m_roads(),
                  healthsites(),
                  # ocha_admin_boundaries(),
                  mapaction_export(),
