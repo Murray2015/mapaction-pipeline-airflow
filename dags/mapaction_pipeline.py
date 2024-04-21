@@ -112,7 +112,6 @@ for country_name, config in configs.items():
             print("////", data_in_directory, data_out_directory, cmf_directory)
             _ne_10m_roads(data_in_directory)
 
-
         @task.bash()
         def transform_ne_10m_roads() -> str:
             """ Usure if dev complete - outputs empty for Moz. """
@@ -121,13 +120,21 @@ for country_name, config in configs.items():
             output_name = f"{docker_worker_working_dir}/{data_out_directory}/232_tran/{country_code}_tran_rds_ln_s0_naturalearth_pp_roads"
             return f"{bash_script_path}/mapaction_extract_country_from_shp.sh {country_geojson_filename} {input_shp_name} {output_name}"
 
-
         @task()
         def ne_10m_populated_places():
+            """ Development complete """
             from pipline_lib.ne_10m_populated_places import ne_10m_populated_places as \
                 _ne_10m_populated_places
             _ne_10m_populated_places(data_in_directory)
             # TODO: extract from shapefile
+
+        @task.bash()
+        def transform_ne_10m_populated_places() -> str:
+            """ Development complete, but no output so possible bugs """
+            country_geojson_filename = f"{docker_worker_working_dir}/dags/static_data/countries/{country_code}.json"
+            input_shp_name = f"{docker_worker_working_dir}/{data_in_directory}/ne_10m_populated_places/ne_10m_populated_places.shp"
+            output_name = f"{docker_worker_working_dir}/{data_out_directory}/229_stle/{country_code}_stle_stl_pt_s0_naturalearth_pp_maincities"
+            return f"{bash_script_path}/mapaction_extract_country_from_shp.sh {country_geojson_filename} {input_shp_name} {output_name}"
 
         @task()
         def ne_10m_rivers_lake_centerlines():
@@ -212,6 +219,12 @@ for country_name, config in configs.items():
         #####################################
         ######## Pipeline definition ########
         #####################################
+        ne_10m_roads_inst = ne_10m_roads()
+        ne_10m_populated_place_inst = ne_10m_populated_places()
+        transform_ne_10m_roads_inst = transform_ne_10m_roads()
+        transform_ne_10m_populated_places_inst = transform_ne_10m_populated_places()
+        datasets_ckan_descriptions_inst = datasets_ckan_descriptions()
+
         (
                 make_data_dirs()
 
@@ -223,8 +236,8 @@ for country_name, config in configs.items():
                  wfp_railroads(),
                  power_plants(),
                  ne_10m_rivers_lake_centerlines(),
-                 ne_10m_populated_places(),
-                 ne_10m_roads(),
+                 ne_10m_populated_place_inst,
+                 ne_10m_roads_inst,
                  healthsites(),
                  # ocha_admin_boundaries(),
                  mapaction_export(),
@@ -232,10 +245,6 @@ for country_name, config in configs.items():
                  worldpop100m(),
                  elevation(),
                  download_hdx_admin_pop()]
-
-                >>
-
-                transform_ne_10m_roads()
 
                 >>
 
@@ -247,7 +256,7 @@ for country_name, config in configs.items():
 
                 >>
 
-                datasets_ckan_descriptions()
+                datasets_ckan_descriptions_inst
 
                 >>
 
@@ -257,6 +266,10 @@ for country_name, config in configs.items():
 
                 send_slack_message()
         )
+
+        ne_10m_roads_inst >> transform_ne_10m_roads_inst
+        ne_10m_populated_place_inst >> transform_ne_10m_populated_places_inst
+        [transform_ne_10m_roads_inst, transform_ne_10m_populated_places_inst] >> datasets_ckan_descriptions_inst
 
 
     mapaction_pipeline()
