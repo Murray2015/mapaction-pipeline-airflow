@@ -1,5 +1,6 @@
 import os
 
+import pandas
 import pendulum
 from airflow.decorators import dag, task
 from airflow.operators.bash import BashOperator
@@ -153,9 +154,24 @@ for country_name, config in configs.items():
 
         @task()
         def power_plants():
+            """ Development complete """
             from pipline_lib.power_plants import power_plants as _power_plants
             _power_plants(data_in_directory, data_out_directory)
-            # TODO: extract via country code in csv in next step
+
+        @task()
+        def transform_power_plants():
+            csv_filename = f"{data_in_directory}/power_plants/global_power_plant_database.csv"
+            df = pandas.read_csv(csv_filename, low_memory=False)
+            print(df.head())
+            country_df = df[df["country"] == country_code.upper()]
+            print(country_df.head())
+            output_dir = f"{docker_worker_working_dir}/{data_out_directory}/233_util"
+            output_name = f"{output_dir}/{country_code}_util_pst_pt_s0_gppd_pp_powerplants.csv"
+            os.makedirs(output_dir, exist_ok=True)
+            country_df.to_csv(output_name)
+            # TODO: slightly mistake, this outputs a csv, but it should output a shp. Next: add geopandas
+
+
 
         @task()
         def wfp_railroads():
@@ -224,9 +240,12 @@ for country_name, config in configs.items():
             }
         )
 
-        #####################################
-        ######## Pipeline definition ########
-        #####################################
+        ######################################
+        ######## Variable definitions ########
+        ######################################
+        # For the pipeline def below, it's often easier to init a task here so you can
+        # use it multiple times in the pipeline def below. If you only need to use it
+        # once you can just call it directly.
         ne_10m_roads_inst = ne_10m_roads()
         ne_10m_populated_place_inst = ne_10m_populated_places()
         transform_ne_10m_roads_inst = transform_ne_10m_roads()
@@ -234,7 +253,12 @@ for country_name, config in configs.items():
         datasets_ckan_descriptions_inst = datasets_ckan_descriptions()
         ne_10m_rivers_lake_centerlines_inst = ne_10m_rivers_lake_centerlines()
         transform_ne_10m_rivers_lake_centerlines_inst = transform_ne_10m_rivers_lake_centerlines()
+        power_plants_inst = power_plants()
+        transform_power_plants_inst = transform_power_plants()
 
+        #####################################
+        ######## Pipeline definition ########
+        #####################################
         (
                 make_data_dirs()
 
@@ -244,7 +268,8 @@ for country_name, config in configs.items():
                  ourairports(),
                  worldports(),
                  wfp_railroads(),
-                 power_plants(),
+                 power_plants_inst,
+                 # power_plants(),
                  ne_10m_rivers_lake_centerlines_inst,
                  ne_10m_populated_place_inst,
                  ne_10m_roads_inst,
@@ -280,6 +305,8 @@ for country_name, config in configs.items():
         ne_10m_roads_inst >> transform_ne_10m_roads_inst
         ne_10m_populated_place_inst >> transform_ne_10m_populated_places_inst
         ne_10m_rivers_lake_centerlines_inst >> transform_ne_10m_rivers_lake_centerlines_inst
+        power_plants_inst >> transform_power_plants_inst
+
         [transform_ne_10m_roads_inst,
          transform_ne_10m_populated_places_inst,
          transform_ne_10m_rivers_lake_centerlines_inst] >> datasets_ckan_descriptions_inst
