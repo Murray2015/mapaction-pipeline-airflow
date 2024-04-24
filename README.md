@@ -60,6 +60,7 @@ remade / mapped in the POC pipeline with the same names, and this is currently w
 
 - Currently trying AWS's [managed service](https://docs.aws.amazon.com/mwaa/latest/userguide/what-is-mwaa.html). 
 - See [here](https://github.com/aws/aws-mwaa-local-runner/issues/157) for how to install non-python dependencies (e.g. gdal) 
+- If you get "Dag import errors", the actual errors are in the logs directory/volume
 
 ## Quickstart
 

@@ -1,6 +1,7 @@
 import os
 
 import pandas
+import geopandas
 import pendulum
 from airflow.decorators import dag, task
 from airflow.operators.bash import BashOperator
@@ -160,17 +161,19 @@ for country_name, config in configs.items():
 
         @task()
         def transform_power_plants():
+            """ Development complete """
             csv_filename = f"{data_in_directory}/power_plants/global_power_plant_database.csv"
             df = pandas.read_csv(csv_filename, low_memory=False)
-            print(df.head())
             country_df = df[df["country"] == country_code.upper()]
-            print(country_df.head())
+            gdf = geopandas.GeoDataFrame(
+                country_df, geometry=geopandas.points_from_xy(country_df.longitude, country_df.latitude)
+            )
             output_dir = f"{docker_worker_working_dir}/{data_out_directory}/233_util"
-            output_name = f"{output_dir}/{country_code}_util_pst_pt_s0_gppd_pp_powerplants.csv"
+            output_name_csv = f"{output_dir}/{country_code}_util_pst_pt_s0_gppd_pp_powerplants.csv"
+            output_name_shp = f"{output_dir}/{country_code}_util_pst_pt_s0_gppd_pp_powerplants.shp"
             os.makedirs(output_dir, exist_ok=True)
-            country_df.to_csv(output_name)
-            # TODO: slightly mistake, this outputs a csv, but it should output a shp. Next: add geopandas
-
+            country_df.to_csv(output_name_csv)
+            gdf.to_file(output_name_shp)
 
 
         @task()
