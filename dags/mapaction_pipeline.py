@@ -184,8 +184,28 @@ for country_name, config in configs.items():
 
         @task()
         def worldports():
+            """ Development complete """
             from pipline_lib.worldports import worldports as _world_ports
             _world_ports(data_in_directory, data_out_directory)
+
+
+        @task()
+        def transform_worldports():
+            """ Development complete """
+            csv_filename = f"{data_in_directory}/worldports/worldports.csv"
+            df = pandas.read_csv(csv_filename, low_memory=False)
+            country_df = df[df["Country Code"] == country_name.capitalize()]
+            gdf = geopandas.GeoDataFrame(
+                country_df, geometry=geopandas.points_from_xy(country_df.Longitude, country_df.Latitude)
+            )
+            print(gdf.head())
+            output_dir = f"{docker_worker_working_dir}/{data_out_directory}/232_tran"
+            output_name_csv = f"{output_dir}/{country_code}_tran_por_pt_s0_worldports_pp_ports.csv"
+            output_name_shp = f"{output_dir}/{country_code}_tran_por_pt_s0_worldports_pp_ports.shp"
+            os.makedirs(output_dir, exist_ok=True)
+            country_df.to_csv(output_name_csv)
+            gdf.to_file(output_name_shp)
+
 
         @task()
         def ourairports():
@@ -258,6 +278,8 @@ for country_name, config in configs.items():
         transform_ne_10m_rivers_lake_centerlines_inst = transform_ne_10m_rivers_lake_centerlines()
         power_plants_inst = power_plants()
         transform_power_plants_inst = transform_power_plants()
+        worldports_inst = worldports()
+        transform_worldports_inst = transform_worldports()
 
         #####################################
         ######## Pipeline definition ########
@@ -269,7 +291,8 @@ for country_name, config in configs.items():
 
                 [ne_10m_lakes(),
                  ourairports(),
-                 worldports(),
+                 # worldports(),
+                 worldports_inst,
                  wfp_railroads(),
                  power_plants_inst,
                  # power_plants(),
@@ -309,10 +332,13 @@ for country_name, config in configs.items():
         ne_10m_populated_place_inst >> transform_ne_10m_populated_places_inst
         ne_10m_rivers_lake_centerlines_inst >> transform_ne_10m_rivers_lake_centerlines_inst
         power_plants_inst >> transform_power_plants_inst
+        worldports_inst >> transform_worldports_inst
 
         [transform_ne_10m_roads_inst,
          transform_ne_10m_populated_places_inst,
-         transform_ne_10m_rivers_lake_centerlines_inst] >> datasets_ckan_descriptions_inst
+         transform_ne_10m_rivers_lake_centerlines_inst,
+         transform_power_plants_inst,
+         transform_worldports_inst] >> datasets_ckan_descriptions_inst
 
 
     mapaction_pipeline()
