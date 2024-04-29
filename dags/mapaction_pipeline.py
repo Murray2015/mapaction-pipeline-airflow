@@ -186,7 +186,7 @@ for country_name, config in configs.items():
         def worldports():
             """ Development complete """
             from pipline_lib.worldports import worldports as _world_ports
-            _world_ports(data_in_directory, data_out_directory)
+            _world_ports(data_in_directory)
 
 
         @task()
