@@ -209,8 +209,27 @@ for country_name, config in configs.items():
 
         @task()
         def ourairports():
+            """ Development complete """
             from pipline_lib.ourairports import ourairports as _ourairports
             _ourairports(data_in_directory, data_out_directory)
+
+        @task()
+        def transform_ourairports():
+            """ Development complete """
+            csv_filename = f"{data_in_directory}/ourairports/ourairports.csv"
+            df = pandas.read_csv(csv_filename, low_memory=False)
+            gdf = geopandas.GeoDataFrame(
+                df, geometry=geopandas.points_from_xy(df.longitude_deg, df.latitude_deg)
+            )
+            # Use point inside polygon to select relevant rows
+            country_poly = geopandas.read_file(country_geojson_filename)
+            country_data = gdf[gdf.geometry.within(country_poly.geometry.iloc[0])]
+            output_dir = f"{docker_worker_working_dir}/{data_out_directory}/232_tran"
+            output_name_csv = f"{output_dir}/{country_code}_tran_air_pt_s0_ourairports_pp_airports.csv"
+            output_name_shp = f"{output_dir}/{country_code}_tran_air_pt_s0_ourairports_pp_airports.shp"
+            os.makedirs(output_dir, exist_ok=True)
+            country_data.to_csv(output_name_csv)
+            country_data.to_file(output_name_shp)
 
         @task()
         def ne_10m_lakes():
@@ -280,6 +299,8 @@ for country_name, config in configs.items():
         transform_power_plants_inst = transform_power_plants()
         worldports_inst = worldports()
         transform_worldports_inst = transform_worldports()
+        ourairports_inst = ourairports()
+        transform_ourairports_inst = transform_ourairports()
 
         #####################################
         ######## Pipeline definition ########
@@ -290,8 +311,8 @@ for country_name, config in configs.items():
                 >>
 
                 [ne_10m_lakes(),
-                 ourairports(),
-                 # worldports(),
+                 # ourairports(),
+                 ourairports_inst,
                  worldports_inst,
                  wfp_railroads(),
                  power_plants_inst,
@@ -328,6 +349,7 @@ for country_name, config in configs.items():
                 send_slack_message()
         )
 
+        ourairports_inst >> transform_ourairports_inst
         ne_10m_roads_inst >> transform_ne_10m_roads_inst
         ne_10m_populated_place_inst >> transform_ne_10m_populated_places_inst
         ne_10m_rivers_lake_centerlines_inst >> transform_ne_10m_rivers_lake_centerlines_inst
@@ -335,6 +357,7 @@ for country_name, config in configs.items():
         worldports_inst >> transform_worldports_inst
 
         [transform_ne_10m_roads_inst,
+         transform_ourairports_inst,
          transform_ne_10m_populated_places_inst,
          transform_ne_10m_rivers_lake_centerlines_inst,
          transform_power_plants_inst,
