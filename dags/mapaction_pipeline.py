@@ -236,6 +236,23 @@ for country_name, config in configs.items():
             from pipline_lib.ne_10m_lakes import ne_10m_lakes as _ne_10m_lakes
             _ne_10m_lakes(data_in_directory, data_out_directory)
 
+
+        @task()
+        def transform_ne_10m_lakes():
+            shp_filename = data_in_directory + "/ne_10m_lakes/ne_10m_lakes.shp"
+            print(shp_filename)
+            gdf = geopandas.read_file(shp_filename, encoding='utf-8')
+            print(gdf)
+            country_poly = geopandas.read_file(country_geojson_filename)
+            country_data = gdf[gdf.geometry.within(country_poly.geometry.iloc[0])]
+            print("country data::")
+            print(country_data)
+            output_dir = f"{docker_worker_working_dir}/{data_out_directory}/221_phys"
+            output_name_shp = f"{output_dir}/{country_code}_phys_lak_py_s0_naturalearth_pp_waterbodies"
+            os.makedirs(output_dir, exist_ok=True)
+            country_data.to_file(output_name_shp)
+            # TODO: needs more testing - no features in output shapefile
+
         @task()
         def datasets_ckan_descriptions():
             pass
@@ -260,28 +277,6 @@ for country_name, config in configs.items():
         def send_slack_message():
             pass
 
-        test_bash_task = BashOperator(
-            task_id="test_bash_task",
-            # bash_command='echo {{ params.country_code }}',
-            bash_command='pwd; ls /opt/airflow/dags/scripts;',
-            params={"country_code": country_code}
-        )
-
-        # Make data/in dir
-        ogrinfo_task = BashOperator(
-            task_id="ogrinfo_task",
-            bash_command='{{ params.bash_script_path }}/mapaction_extract_country_from_shp.sh {{ params.static_data_path }}{{ params.mask_path }} {{ params.docker_worker_working_dir }}/{{ params.data_path }} {{ params.output_path }}; ls /opt/airflow/data; ',
-            params={
-                "country_code": country_code,
-                "mask_path": f"/countries/{country_code}.json",
-                "data_path": f"{data_in_directory}/ne_10m_roads",
-                "output_path": f"{data_out_directory}/ne_10m_roads",
-                "docker_worker_working_dir": docker_worker_working_dir,
-                "bash_script_path": f"{docker_worker_working_dir}/dags/scripts/bash",
-                "static_data_path": f"{docker_worker_working_dir}/dags/static_data"
-            }
-        )
-
         ######################################
         ######## Variable definitions ########
         ######################################
@@ -301,6 +296,9 @@ for country_name, config in configs.items():
         transform_worldports_inst = transform_worldports()
         ourairports_inst = ourairports()
         transform_ourairports_inst = transform_ourairports()
+        ne_10m_lakes_inst = ne_10m_lakes()
+        transform_ne_10m_lakes_inst = transform_ne_10m_lakes()
+
 
         #####################################
         ######## Pipeline definition ########
@@ -310,13 +308,13 @@ for country_name, config in configs.items():
 
                 >>
 
-                [ne_10m_lakes(),
-                 # ourairports(),
+                [
+                    # ne_10m_lakes(),
+                 ne_10m_lakes_inst,
                  ourairports_inst,
                  worldports_inst,
                  wfp_railroads(),
                  power_plants_inst,
-                 # power_plants(),
                  ne_10m_rivers_lake_centerlines_inst,
                  ne_10m_populated_place_inst,
                  ne_10m_roads_inst,
@@ -327,14 +325,6 @@ for country_name, config in configs.items():
                  worldpop100m(),
                  elevation(),
                  download_hdx_admin_pop()]
-
-                >>
-
-                test_bash_task
-
-                >>
-
-                ogrinfo_task
 
                 >>
 
@@ -349,6 +339,7 @@ for country_name, config in configs.items():
                 send_slack_message()
         )
 
+        ne_10m_lakes_inst >> transform_ne_10m_lakes_inst
         ourairports_inst >> transform_ourairports_inst
         ne_10m_roads_inst >> transform_ne_10m_roads_inst
         ne_10m_populated_place_inst >> transform_ne_10m_populated_places_inst
@@ -356,7 +347,8 @@ for country_name, config in configs.items():
         power_plants_inst >> transform_power_plants_inst
         worldports_inst >> transform_worldports_inst
 
-        [transform_ne_10m_roads_inst,
+        [transform_ne_10m_lakes_inst,
+        transform_ne_10m_roads_inst,
          transform_ourairports_inst,
          transform_ne_10m_populated_places_inst,
          transform_ne_10m_rivers_lake_centerlines_inst,
