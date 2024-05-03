@@ -22,6 +22,9 @@ This is a proof of concept data pipeline using Apache Airflow to rebuild the
 - [ ] Find mechanism to check if country boundary has changed (hash / checksum?) for 
 conditional logic on whether to re-generate the country's elevation dataset (the slow step)
 - [ ] Fix bug where dynamic pipeline generation seems to always get "moz" (even for Afganistan?!)
+- [ ] 250m grid is 3Gb and takes around 5 mins to download on a fast internet connection
+  - Things to try: 
+  - [ ] Upload to S3 and see how fast that is to download from 
 
 
 

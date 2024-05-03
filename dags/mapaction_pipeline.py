@@ -4,7 +4,6 @@ import pandas
 import geopandas
 import pendulum
 from airflow.decorators import dag, task
-from airflow.operators.bash import BashOperator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -67,6 +66,12 @@ for country_name, config in configs.items():
             # download_srtm_30("Mozambique")  # Commented for development as slow to run
             # TODO: this downloads ?30m SRTM, but also need to download 90 and 250m
             # TODO: not currently doing any processing here. May need to grid and output
+
+        @task()
+        def gmted2010():
+            """ https://www.usgs.gov/coastal-changes-and-impacts/gmted2010 """
+            from pipline_lib.gmted2010 import gmted2010
+            pass
 
         @task()
         def worldpop1km():
@@ -309,7 +314,6 @@ for country_name, config in configs.items():
                 >>
 
                 [
-                    # ne_10m_lakes(),
                  ne_10m_lakes_inst,
                  ourairports_inst,
                  worldports_inst,
