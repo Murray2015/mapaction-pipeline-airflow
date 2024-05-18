@@ -10,7 +10,10 @@ def gmted2010(data_in_dir: str):
     url = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Grid_ZipFiles/be75_grd.zip"
     # make_dir_download_zip(url, f"{data_in_dir}/gmted2010.be75_grd.zip")
     make_dir_download_file(url, data_in_dir, "/gmted2010.be75_grd.zip")
-    # TODO: currently broken - runs out of memory (exit code 9)
+    # TODO: currently broken - runs out of memory (exit code 9). Possibly because
+    #  downloading large file (4.5gb) to inside container rather than toa volume?
+    #  Otherwise, might just need to boost memory in Docker preferences.
+
 
 
 def transform_gmted2010(data_in_dir: str, country_shapefile_name: str, data_out_loc: str):

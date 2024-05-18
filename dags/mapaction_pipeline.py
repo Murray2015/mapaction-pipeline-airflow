@@ -6,10 +6,10 @@ import pendulum
 from airflow.decorators import dag, task
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv()  # your .env should be in the /dags dir, not the project root.
 
 # This is a way to create a different pipeline for every country, so they
-# (hopefully) run in parallel.
+# (hopefully) run in parallel. This is called "dynamic DAG generation" in the docs.
 configs = {
     "Afganistan": {"code": "afg"},
     "Mozambique": {"code": "moz"}
@@ -292,7 +292,7 @@ for country_name, config in configs.items():
         ######################################
         ######## Variable definitions ########
         ######################################
-        # For the pipeline def below, it's often easier to init a task here so you can
+        # It's often easier to init a task here so you can
         # use it multiple times in the pipeline def below. If you only need to use it
         # once you can just call it directly.
         ne_10m_roads_inst = ne_10m_roads()
@@ -317,12 +317,12 @@ for country_name, config in configs.items():
         ######## Pipeline definition ########
         #####################################
         (
-                make_data_dirs()
+                make_data_dirs()  # Example of calling task directly in pipeline definition
 
                 >>
 
                 [
-                 ne_10m_lakes_inst,
+                 ne_10m_lakes_inst,  # Example of using an instance multiple times in the pipeline definition
                  ourairports_inst,
                  worldports_inst,
                  wfp_railroads(),
@@ -371,4 +371,4 @@ for country_name, config in configs.items():
          transform_worldports_inst] >> datasets_ckan_descriptions_inst
 
 
-    mapaction_pipeline()
+    mapaction_pipeline()  # Required call to wrap up pipeline definition.
