@@ -163,6 +163,5 @@ watchtower==3.1.0
 Werkzeug==2.2.3
 wrapt==1.16.0
 WTForms==3.1.2
-xarray==2024.3.0
 yarl==1.9.4
 zipp==3.17.0

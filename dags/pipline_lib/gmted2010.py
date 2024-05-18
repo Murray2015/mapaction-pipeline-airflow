@@ -2,15 +2,23 @@ import rasterio
 import geopandas as gpd
 from rasterio.mask import mask
 
-from .utils import make_dir_download_zip
+from .utils import make_dir_download_file
 
 
-def gmted2010(data_in_dir: str, data_out_dir: str):
+def gmted2010(data_in_dir: str):
+    """ Downloads the gmted2010 grid file and unzips it. """
+    url = "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/topo/downloads/GMTED/Grid_ZipFiles/be75_grd.zip"
+    # make_dir_download_zip(url, f"{data_in_dir}/gmted2010.be75_grd.zip")
+    make_dir_download_file(url, data_in_dir, "/gmted2010.be75_grd.zip")
+    # TODO: currently broken - runs out of memory (exit code 9)
+
+
+def transform_gmted2010(data_in_dir: str, country_shapefile_name: str, data_out_loc: str):
     """ Extracts the gmted2010 dataset from the country outline polygon """
     # Define input and output paths
-    arcgrid_path = ""
-    polygon_path = ""
-    output_path = ""
+    arcgrid_path = f"{data_in_dir}/gmted2010.be75_grd.zip"
+    polygon_path = country_shapefile_name
+    output_path = data_out_loc
 
     # Read the ArcGrid data
     data = rasterio.open(arcgrid_path)

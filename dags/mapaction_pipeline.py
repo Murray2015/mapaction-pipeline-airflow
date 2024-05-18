@@ -70,8 +70,15 @@ for country_name, config in configs.items():
         @task()
         def gmted2010():
             """ https://www.usgs.gov/coastal-changes-and-impacts/gmted2010 """
-            from pipline_lib.gmted2010 import gmted2010
-            pass
+            from pipline_lib.gmted2010 import gmted2010 as _gmted2010
+            _gmted2010(data_in_directory)
+
+        @task()
+        def transform_gmted2010():
+            """ https://www.usgs.gov/coastal-changes-and-impacts/gmted2010 """
+            from pipline_lib.gmted2010 import transform_gmted2010 as _transform_gmted2010
+            output_name = f"{docker_worker_working_dir}/{data_out_directory}/232_tran/{country_code}_tran_rds_ln_s0_naturalearth_pp_roads"
+            _transform_gmted2010(data_in_directory, country_geojson_filename, output_name)
 
         @task()
         def worldpop1km():
@@ -303,7 +310,8 @@ for country_name, config in configs.items():
         transform_ourairports_inst = transform_ourairports()
         ne_10m_lakes_inst = ne_10m_lakes()
         transform_ne_10m_lakes_inst = transform_ne_10m_lakes()
-
+        gmted2010_inst = gmted2010()
+        transform_gmted2010_inst = transform_gmted2010()
 
         #####################################
         ######## Pipeline definition ########
@@ -328,6 +336,7 @@ for country_name, config in configs.items():
                  worldpop1km(),
                  worldpop100m(),
                  elevation(),
+                 gmted2010_inst,
                  download_hdx_admin_pop()]
 
                 >>
@@ -343,6 +352,7 @@ for country_name, config in configs.items():
                 send_slack_message()
         )
 
+        gmted2010_inst >> transform_gmted2010_inst
         ne_10m_lakes_inst >> transform_ne_10m_lakes_inst
         ourairports_inst >> transform_ourairports_inst
         ne_10m_roads_inst >> transform_ne_10m_roads_inst
@@ -351,8 +361,9 @@ for country_name, config in configs.items():
         power_plants_inst >> transform_power_plants_inst
         worldports_inst >> transform_worldports_inst
 
-        [transform_ne_10m_lakes_inst,
-        transform_ne_10m_roads_inst,
+        [transform_gmted2010_inst,
+         transform_ne_10m_lakes_inst,
+         transform_ne_10m_roads_inst,
          transform_ourairports_inst,
          transform_ne_10m_populated_places_inst,
          transform_ne_10m_rivers_lake_centerlines_inst,
